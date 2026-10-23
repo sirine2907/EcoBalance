@@ -16,4 +16,8 @@ class AppColors {
   static const rabbitBody = Color(0xFFEFF3FA);
   static const fox = Color(0xFFE8742A);
   static const foxBody = Color(0xFFF59A4E);
+
+  // game mode
+  static const star = Color(0xFFF2B705);
+  static const starEmpty = Color(0xFFD9D3C3);
 }
