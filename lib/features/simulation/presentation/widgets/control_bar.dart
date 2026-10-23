@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/simulation_bloc.dart';
 
 class ControlBar extends StatelessWidget {
-  const ControlBar({super.key});
+  /// The game mode hides reset, you retry from the result dialog.
+  final bool showReset;
+
+  const ControlBar({super.key, this.showReset = true});
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +34,12 @@ class ControlBar extends StatelessWidget {
               icon: Icon(state.isRunning ? Icons.pause : Icons.play_arrow),
               label: Text(state.isRunning ? 'Pause' : 'Play'),
             ),
-            OutlinedButton.icon(
-              onPressed: () => bloc.add(const SimulationResetPressed()),
-              icon: const Icon(Icons.restart_alt),
-              label: const Text('Reset'),
-            ),
+            if (showReset)
+              OutlinedButton.icon(
+                onPressed: () => bloc.add(const SimulationResetPressed()),
+                icon: const Icon(Icons.restart_alt),
+                label: const Text('Reset'),
+              ),
             SegmentedButton<int>(
               segments: const [
                 ButtonSegment(value: 1, label: Text('1x')),
