@@ -18,6 +18,9 @@ class Animal {
   int age = 0;
   bool isDead = false;
 
+  /// Ticks left before a fox hunts again after eating.
+  int restTicks = 0;
+
   Animal({
     required this.id,
     required this.species,
