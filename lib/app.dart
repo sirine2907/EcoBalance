@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/game/presentation/cubit/levels_cubit.dart';
+import 'features/home/presentation/pages/home_page.dart';
 import 'features/settings/presentation/cubit/settings_cubit.dart';
 import 'features/simulation/domain/engine/simulation_engine.dart';
 import 'features/simulation/domain/entities/simulation_config.dart';
 import 'features/simulation/presentation/bloc/simulation_bloc.dart';
-import 'features/simulation/presentation/pages/simulation_page.dart';
 import 'features/stats/presentation/cubit/stats_cubit.dart';
 import 'injection_container.dart';
 
@@ -33,12 +34,13 @@ class EcoBalanceApp extends StatelessWidget {
           ),
         ),
         BlocProvider(create: (_) => StatsCubit(exportStatsCsv: sl())),
+        BlocProvider(create: (_) => LevelsCubit(getProgress: sl())),
       ],
       child: MaterialApp(
         title: 'EcoBalance',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: const SimulationPage(),
+        home: const HomePage(),
       ),
     );
   }

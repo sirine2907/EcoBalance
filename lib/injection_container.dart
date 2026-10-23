@@ -1,6 +1,10 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'features/game/data/repositories/progress_repository_impl.dart';
+import 'features/game/domain/repositories/progress_repository.dart';
+import 'features/game/domain/usecases/get_progress.dart';
+import 'features/game/domain/usecases/save_level_result.dart';
 import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/domain/repositories/settings_repository.dart';
 import 'features/settings/domain/usecases/get_config.dart';
@@ -28,4 +32,11 @@ Future<void> init({SharedPreferences? prefs}) async {
   // Stats
   sl.registerLazySingleton<StatsRepository>(() => StatsRepositoryImpl());
   sl.registerLazySingleton(() => ExportStatsCsv(sl()));
+
+  // Game
+  sl.registerLazySingleton<ProgressRepository>(
+    () => ProgressRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetProgress(sl()));
+  sl.registerLazySingleton(() => SaveLevelResult(sl()));
 }
