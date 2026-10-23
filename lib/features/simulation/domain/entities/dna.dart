@@ -23,9 +23,14 @@ class Dna extends Equatable {
 
   /// Returns a copy where every gene moved a little.
   /// [mutationRate] 0.1 means a gene can move up to 10% of its range.
-  Dna mutate(Random random, double mutationRate) {
+  /// [speedLimit] lets a species have a lower top speed.
+  Dna mutate(
+    Random random,
+    double mutationRate, {
+    double speedLimit = maxSpeed,
+  }) {
     return Dna(
-      speed: _mutateGene(random, speed, minSpeed, maxSpeed, mutationRate),
+      speed: _mutateGene(random, speed, minSpeed, speedLimit, mutationRate),
       senseRadius:
           _mutateGene(random, senseRadius, minSense, maxSense, mutationRate),
       size: _mutateGene(random, size, minSize, maxSize, mutationRate),
