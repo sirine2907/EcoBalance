@@ -8,7 +8,11 @@ import 'world_painter.dart';
 
 /// The world view. Tapping it plants grass.
 class WorldCanvas extends StatelessWidget {
-  const WorldCanvas({super.key});
+  /// Called with the world position of a tap. When it is null the
+  /// grass is planted right away (sandbox mode).
+  final void Function(double x, double y)? onTap;
+
+  const WorldCanvas({super.key, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +31,16 @@ class WorldCanvas extends StatelessWidget {
                 // screen position -> world position
                 final scale =
                     SimulationConfig.worldWidth / constraints.maxWidth;
-                context.read<SimulationBloc>().add(SimulationGrassPlanted(
-                      details.localPosition.dx * scale,
-                      details.localPosition.dy * scale,
-                    ));
+                final x = details.localPosition.dx * scale;
+                final y = details.localPosition.dy * scale;
+
+                if (onTap != null) {
+                  onTap!(x, y);
+                } else {
+                  context
+                      .read<SimulationBloc>()
+                      .add(SimulationGrassPlanted(x, y));
+                }
               },
               child: BlocBuilder<SimulationBloc, SimulationState>(
                 builder: (context, state) {
