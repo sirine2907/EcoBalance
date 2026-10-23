@@ -11,7 +11,7 @@ import '../entities/stats_point.dart';
 class SimulationEngine {
   static const int ticksPerSecond = 30;
   static const int maxRabbits = 300;
-  static const int maxFoxes = 20;
+  static const int maxFoxes = 40;
 
   /// Foxes run a bit faster when they chase a rabbit.
   static const double foxSprint = 1.3;
@@ -22,11 +22,15 @@ class SimulationEngine {
   /// Rabbits see foxes only in this part of their sense radius.
   static const double foxSpotRange = 0.6;
 
+  /// Rabbits can't get as fast as foxes, like in real life.
+  static const double rabbitMaxSpeed = 2.5;
+
   static const double grassEnergy = 20;
 
   /// Animals have a baby when their energy goes over this part of the max.
   static const double reproduceThreshold = 0.8;
-  static const int adultAge = 60;
+  static const int rabbitAdultAge = ticksPerSecond * 2;
+  static const int foxAdultAge = ticksPerSecond * 10;
   static const int rabbitMaxAge = ticksPerSecond * 60;
   static const int foxMaxAge = ticksPerSecond * 90;
 
@@ -196,7 +200,7 @@ class SimulationEngine {
     if (_distance(fox, rabbit) < fox.radius + rabbit.radius) {
       rabbit.isDead = true;
       // bigger rabbits are a bigger meal
-      fox.energy = min(fox.energy + 80 * rabbit.dna.size, fox.maxEnergy);
+      fox.energy = min(fox.energy + 55 * rabbit.dna.size, fox.maxEnergy);
       fox.restTicks = foxRestTicks;
     }
   }
@@ -275,6 +279,7 @@ class SimulationEngine {
     final babies = <Animal>[];
 
     for (final parent in animals) {
+      final adultAge = parent.isRabbit ? rabbitAdultAge : foxAdultAge;
       final canHaveBaby = parent.age > adultAge &&
           parent.energy >= parent.maxEnergy * reproduceThreshold;
       if (!canHaveBaby) continue;
@@ -287,7 +292,7 @@ class SimulationEngine {
       final baby = Animal(
         id: _nextId++,
         species: parent.species,
-        dna: parent.dna.mutate(_random, _config.mutationRate),
+        dna: _mutate(parent.species, parent.dna),
         x: parent.x,
         y: parent.y,
         energy: parent.energy,
@@ -309,7 +314,7 @@ class SimulationEngine {
     final animal = Animal(
       id: _nextId++,
       species: species,
-      dna: dna.mutate(_random, _config.mutationRate),
+      dna: _mutate(species, dna),
       x: _random.nextDouble() * SimulationConfig.worldWidth,
       y: _random.nextDouble() * SimulationConfig.worldHeight,
       energy: 0,
@@ -317,6 +322,12 @@ class SimulationEngine {
     );
     animal.energy = animal.maxEnergy / 2;
     return animal;
+  }
+
+  Dna _mutate(Species species, Dna dna) {
+    final speedLimit =
+        species == Species.rabbit ? rabbitMaxSpeed : Dna.maxSpeed;
+    return dna.mutate(_random, _config.mutationRate, speedLimit: speedLimit);
   }
 
   void _recordStats() {
