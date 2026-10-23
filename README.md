@@ -1,30 +1,65 @@
 # EcoBalance
 
-A small ecosystem where rabbits and foxes evolve while you watch.
+A small ecosystem game where rabbits and foxes evolve while you try to keep them both alive.
 
-Grass grows on a grid, rabbits eat the grass and foxes eat the rabbits. Every animal has DNA (speed, sense radius and size), and babies get a slightly mutated copy of their parent's genes. Leave it running for a few minutes and you can see the classic predator-prey cycles, and the two species slowly adapting to each other.
+Grass grows on a grid, rabbits eat the grass and foxes eat the rabbits. Every animal has DNA (speed, sense radius and size), and babies get a slightly mutated copy of their parent's genes. Too many foxes and the rabbits disappear, too few rabbits and the foxes starve. Your job is to keep the balance.
 
 Built with **Flutter** for **desktop and mobile**, using **BLoC** and **clean architecture**.
 
 ## Screenshots
 
-| Simulation | Sense radius |
+| Home | Levels |
 |:---:|:---:|
-| <img src="docs/screenshots/01_simulation.png" width="420" /> | <img src="docs/screenshots/02_sense_radius.png" width="420" /> |
+| <img src="docs/screenshots/01_home.png" width="420" /> | <img src="docs/screenshots/02_levels.png" width="420" /> |
+| **Playing a level** | **Level complete** |
+| <img src="docs/screenshots/03_game.png" width="420" /> | <img src="docs/screenshots/04_level_complete.png" width="420" /> |
+| **Sandbox** | **Sense radius** |
+| <img src="docs/screenshots/05_sandbox.png" width="420" /> | <img src="docs/screenshots/06_sense_radius.png" width="420" /> |
 | **Statistics** | **Settings** |
-| <img src="docs/screenshots/03_statistics.png" width="420" /> | <img src="docs/screenshots/04_settings.png" width="420" /> |
+| <img src="docs/screenshots/07_statistics.png" width="420" /> | <img src="docs/screenshots/08_settings.png" width="420" /> |
 
 <p align="center">
-  <img src="docs/screenshots/05_phone.png" width="230" /><br/>
+  <img src="docs/screenshots/09_phone.png" width="230" /><br/>
   <b>Phone layout</b>
 </p>
+
+## How to play
+
+1. Open **Play levels** and pick a level.
+2. Press **Play**. The timer starts and the animals start moving.
+3. **Keep both species alive until the timer ends.** If the rabbits or the foxes die out, you lose.
+4. **Tap the world to plant grass.** Each tap plants a 3x3 patch and uses one seed, and every level gives you only a few seeds. Plant when the rabbits are hungry or the foxes are eating too many of them.
+5. Use **2x / 4x** if you want to go faster.
+
+Every level has 3 stars to earn:
+
+- ★ Keep both species alive until the end.
+- ★ Use half of your seeds or less.
+- ★ End with a healthy world (30+ rabbits and 5+ foxes).
+
+Clearing a level unlocks the next one, and your best stars and score are saved.
+
+| # | Level | Time | Seeds | What makes it hard |
+|---|---|---|---|---|
+| 1 | First Spring | 60 s | 10 | Nothing, it's the tutorial |
+| 2 | Hungry Foxes | 90 s | 8 | Twice as many foxes, fewer rabbits |
+| 3 | Wild Mutations | 120 s | 8 | Big mutations, foxes need less food |
+| 4 | Dry Season | 90 s | 12 | Grass grows back very slowly |
+| 5 | Last Stand | 150 s | 10 | Few rabbits, many foxes, little grass |
+
+I balanced the levels by running each one 20 times without a player, then with a simple bot that plants grass when the rabbits get low. The first levels are almost always won, while Last Stand is lost about half the time if you don't plant at the right moment.
+
+The **Sandbox** is the free mode: unlimited grass, a settings screen to change the rules, and charts to watch evolution over a long time.
 
 ## Why I built it
 
 I've always liked the evolution simulator videos where little creatures get faster or smarter over hundreds of generations. I wanted to build one myself, but with two species that push each other instead of one species against the food. It also turned out to be a good exercise in keeping the "game logic" in plain Dart, so it can be tested without any widgets.
 
+The first version was only the simulation: fun to watch, but there was nothing to do. So I added a game mode with levels, a limited number of seeds and stars, which turns watching into playing.
+
 ## Features
 
+- **Game mode** with 5 levels, a timer, limited seeds, 3 stars per level, a score and saved progress.
 - **Live world** drawn with a `CustomPainter`: grass tiles, rabbits and foxes facing the way they walk.
 - **Play / pause / reset** and **speed control** (1x, 2x, 4x).
 - **Tap the world to plant grass**, handy when the rabbits are about to starve.
@@ -82,6 +117,12 @@ lib/
 ├── core/
 │   └── theme/                    # colors and app theme
 └── features/
+    ├── home/
+    │   └── presentation/         # home page (game or sandbox)
+    ├── game/
+    │   ├── domain/               # Level, LevelProgress, levels list, GameRules, usecases
+    │   ├── data/                 # progress saved with shared_preferences
+    │   └── presentation/         # GameCubit, LevelsCubit, level select, game page, hud, result dialog
     ├── simulation/
     │   ├── domain/
     │   │   ├── entities/         # Animal, Dna, Grass, SimulationConfig, StatsPoint
@@ -100,6 +141,8 @@ lib/
 - **Domain** is plain Dart. The `SimulationEngine` has no Flutter imports and takes an optional `Random`, so tests can use a fixed seed and always get the same world.
 - **Data** implements the repositories: settings are saved as JSON in `shared_preferences`, and stats are written as a CSV file in the documents folder.
 - **Presentation** has the blocs and the widgets. Widgets only send events and draw the state.
+
+The game mode reuses the simulation instead of copying it. The game page creates its own `SimulationBloc` with the level's config, reuses the same canvas and controls, and adds a `GameCubit` next to it. The cubit listens to every simulation update, counts down the timer, and uses the `GameRules` to decide when the level is won or lost. The rules (win, lose, stars, score) are plain static functions, so they're tested without any widget.
 
 ### How the BLoC flow works
 
@@ -152,8 +195,9 @@ flutter test
 
 - **Engine tests** with a fixed seed: eating grass, foxes catching rabbits, running away, babies, death by hunger and old age, planting grass, and that the same seed always gives the same world.
 - **DNA tests**: mutation stays inside the gene ranges and respects the rabbit speed limit.
-- **Bloc tests** (`bloc_test`) for `SimulationBloc`, `SettingsCubit` and `StatsCubit`.
-- **Data tests** for the JSON model, the settings repository and the CSV export.
+- **Game rules tests**: winning, losing (even on the last second), stars and score.
+- **Bloc tests** (`bloc_test`) for `SimulationBloc`, `GameCubit`, `LevelsCubit`, `SettingsCubit` and `StatsCubit`.
+- **Data tests** for the JSON model, the settings repository, saved level progress and the CSV export.
 
 The screenshots above are golden tests. They run the world with a fixed seed and render each screen. To update them:
 
