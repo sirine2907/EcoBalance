@@ -29,6 +29,22 @@ class StatsLineChart extends StatelessWidget {
     this.maxY,
   });
 
+  /// Rounds the top of the chart up so the last label is a clean number
+  /// (169 -> 200, 3.8 -> 4).
+  double _niceMax() {
+    var highest = 0.0;
+    for (final s in series) {
+      for (final spot in s.spots) {
+        if (spot.y > highest) highest = spot.y;
+      }
+    }
+
+    if (highest <= 0) return 1;
+    if (highest <= 5) return highest.ceilToDouble();
+    final step = highest <= 50 ? 10 : 50;
+    return (highest / step).ceil() * step.toDouble();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -68,7 +84,7 @@ class StatsLineChart extends StatelessWidget {
               child: LineChart(
                 LineChartData(
                   minY: 0,
-                  maxY: maxY,
+                  maxY: maxY ?? _niceMax(),
                   lineTouchData: const LineTouchData(enabled: false),
                   gridData: FlGridData(
                     drawVerticalLine: false,
