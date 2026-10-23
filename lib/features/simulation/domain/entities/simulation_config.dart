@@ -25,7 +25,7 @@ class SimulationConfig extends Equatable {
   const SimulationConfig({
     this.startRabbits = 40,
     this.startFoxes = 6,
-    this.grassGrowthRate = 0.004,
+    this.grassGrowthRate = 0.0015,
     this.mutationRate = 0.1,
     this.rabbitEnergyCost = 1.0,
     this.foxEnergyCost = 1.0,
